@@ -63,7 +63,8 @@ class SQLiteClient:
         self,
         session_id: str,
         role: str,
-        content: str
+        content: str,
+        sources: Optional[List[dict]] = None
     ) -> None:
         """
         Add a message to a session.
@@ -72,12 +73,14 @@ class SQLiteClient:
             session_id: Session ID
             role: 'user' or 'assistant'
             content: Message content
+            sources: Optional list of sources (for assistant messages)
         """
         async with self.async_session() as session:
             message = ChatMessage(
                 session_id=session_id,
                 role=role,
-                content=content
+                content=content,
+                sources=sources
             )
             session.add(message)
             await session.commit()

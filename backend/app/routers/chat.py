@@ -123,10 +123,7 @@ async def generate_chat_stream(
             full_response += token
             yield f"event: token\ndata: {json.dumps({'text': token})}\n\n"
 
-        # Save assistant message
-        await sqlite_client.add_message(session_id, "assistant", full_response)
-
-        # Send sources
+        # Prepare sources
         sources = [
             {
                 'doc_id': chunk['doc_id'],
@@ -137,6 +134,11 @@ async def generate_chat_stream(
             }
             for chunk in results
         ]
+
+        # Save assistant message with sources
+        await sqlite_client.add_message(session_id, "assistant", full_response, sources)
+
+        # Send sources
         yield f"event: sources\ndata: {json.dumps({'sources': sources})}\n\n"
 
         # Send done event
@@ -161,7 +163,7 @@ async def get_session_messages(
         limit: Maximum number of messages (default 100)
 
     Returns:
-        List of messages with role and content
+        List of messages with role, content, and sources
     """
     try:
         messages = await sqlite_client.get_recent_messages(session_id, limit)
@@ -169,6 +171,7 @@ async def get_session_messages(
             {
                 'role': msg.role,
                 'content': msg.content,
+                'sources': msg.sources if msg.sources else None,
                 'created_at': msg.created_at.isoformat()
             }
             for msg in messages

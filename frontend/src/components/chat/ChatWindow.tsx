@@ -61,6 +61,12 @@ export default function ChatWindow({ selectedDocIds }: ChatWindowProps) {
     }
   }
 
+  const handleMessageClick = (message: ChatMessage) => {
+    if (message.sources) {
+      setCurrentSources(message.sources)
+    }
+  }
+
   const handleSendMessage = (message: string) => {
     // Add user message
     const userMessage: ChatMessage = {
@@ -148,6 +154,7 @@ export default function ChatWindow({ selectedDocIds }: ChatWindowProps) {
           messages={messages}
           isStreaming={isStreaming}
           streamingContent={streamingContent}
+          onMessageClick={handleMessageClick}
         />
         <MessageInput
           onSendMessage={handleSendMessage}

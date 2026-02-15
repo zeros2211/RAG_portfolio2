@@ -52,12 +52,18 @@ export const chatApi = {
   },
 
   getSessionMessages: async (sessionId: string): Promise<ChatMessage[]> => {
-    const response = await api.get<Array<{role: 'user' | 'assistant', content: string, created_at: string}>>(
+    const response = await api.get<Array<{
+      role: 'user' | 'assistant',
+      content: string,
+      sources?: any[],
+      created_at: string
+    }>>(
       `/chat/sessions/${sessionId}/messages`
     )
     return response.data.map(msg => ({
       role: msg.role,
       content: msg.content,
+      sources: msg.sources,
     }))
   },
 }
