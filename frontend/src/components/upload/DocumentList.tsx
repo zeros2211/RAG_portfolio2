@@ -1,4 +1,4 @@
-import { CheckCircle, Clock, XCircle, FileText } from 'lucide-react'
+import { CheckCircle, Clock, XCircle, FileText, CheckCircle2, Circle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Document } from '@/types'
@@ -41,67 +41,72 @@ export default function DocumentList({
   }
 
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-semibold mb-4">Uploaded Documents</h2>
+    <div className="mt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {documents.map((doc) => (
-          <Card
-            key={doc.doc_id}
-            className={`cursor-pointer transition-all ${
-              selectedDocIds.has(doc.doc_id)
-                ? 'ring-2 ring-primary'
-                : 'hover:shadow-md'
-            } ${doc.status !== 'READY' ? 'opacity-60' : ''}`}
-            onClick={() => {
-              if (doc.status === 'READY') {
-                onToggleDocument(doc.doc_id)
-              }
-            }}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2 flex-1">
-                  <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                  <CardTitle className="text-sm truncate" title={doc.filename}>
-                    {doc.filename}
-                  </CardTitle>
-                </div>
-                {getStatusIcon(doc.status)}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {getStatusBadge(doc.status)}
-                {doc.page_count !== undefined && (
-                  <p className="text-sm text-muted-foreground">
-                    {doc.page_count} pages
-                  </p>
-                )}
-                {doc.error_message && (
-                  <p className="text-xs text-destructive">
-                    {doc.error_message}
-                  </p>
-                )}
-                {doc.status === 'READY' && (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedDocIds.has(doc.doc_id)}
-                      onChange={(e) => {
-                        e.stopPropagation()
-                        onToggleDocument(doc.doc_id)
-                      }}
-                      className="h-4 w-4"
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      Select for chat
-                    </span>
+        {documents.map((doc) => {
+          const isSelected = selectedDocIds.has(doc.doc_id)
+          return (
+            <Card
+              key={doc.doc_id}
+              className={`cursor-pointer transition-all ${
+                isSelected
+                  ? 'ring-2 ring-primary bg-primary/5'
+                  : 'hover:shadow-md hover:ring-1 hover:ring-primary/30'
+              } ${doc.status !== 'READY' ? 'opacity-60 cursor-not-allowed' : ''}`}
+              onClick={() => {
+                if (doc.status === 'READY') {
+                  onToggleDocument(doc.doc_id)
+                }
+              }}
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                    <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <CardTitle className="text-sm truncate" title={doc.filename}>
+                      {doc.filename}
+                    </CardTitle>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  {getStatusIcon(doc.status)}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {getStatusBadge(doc.status)}
+                  {doc.page_count !== undefined && (
+                    <p className="text-sm text-muted-foreground">
+                      {doc.page_count} pages
+                    </p>
+                  )}
+                  {doc.error_message && (
+                    <p className="text-xs text-destructive">
+                      {doc.error_message}
+                    </p>
+                  )}
+                  {doc.status === 'READY' && (
+                    <div className="flex items-center gap-2 pt-2 border-t">
+                      {isSelected ? (
+                        <>
+                          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                          <span className="text-sm font-medium text-primary">
+                            Selected for chat
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                          <span className="text-sm text-muted-foreground">
+                            Click to select
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )
