@@ -1,0 +1,27 @@
+# Node
+node_modules/
+npm-debug.log
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+env/
+
+# Data
+data/
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Docs
+*.md
+!README.md

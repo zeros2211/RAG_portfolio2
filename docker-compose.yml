@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rag_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rag_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - EMBEDDING_MODEL=qwen3-embedding:0.6b
+      - LLM_MODEL=qwen3:8b
+      - DATA_DIR=/app/data
+      - PDF_DIR=/app/data/pdfs
+      - CHROMA_DIR=/app/data/chroma
+      - CHUNK_SIZE=1000
+      - CHUNK_OVERLAP=150
+      - TOP_K=5
+      - MAX_CONTEXT_TURNS=5
+      - SQLITE_URL=sqlite+aiosqlite:///./data/sessions.db
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - rag_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rag_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - rag_network
+
+volumes:
+  ollama_data:
+
+networks:
+  rag_network:
+    driver: bridge
