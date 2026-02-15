@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Body
 from fastapi.responses import StreamingResponse
 from typing import List, Optional, AsyncGenerator
 import json
@@ -8,6 +8,7 @@ import uuid
 from ..services.ollama_service import OllamaService
 from ..db.chroma_client import chroma_client
 from ..db.sqlite_client import sqlite_client
+from ..models.session import ChatSession
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -114,6 +115,13 @@ async def generate_chat_stream(
         # Save user message
         await sqlite_client.add_message(session_id, "user", message)
 
+        # Auto-generate title from first message if session title is "New Chat"
+        session = await sqlite_client.get_session(session_id)
+        if session and session.title == "New Chat":
+            # Use first 50 characters of the message as title
+            title = message[:50] + "..." if len(message) > 50 else message
+            await sqlite_client.update_session_title(session_id, title)
+
         # Stream LLM response
         full_response = ""
         async for token in ollama_service.generate_stream(
@@ -148,6 +156,87 @@ async def generate_chat_stream(
         logger.error(f"Error in chat stream: {str(e)}")
         error_data = {'message': str(e)}
         yield f"event: error\ndata: {json.dumps(error_data)}\n\n"
+
+
+@router.get("/sessions")
+async def get_sessions():
+    """
+    Get all chat sessions.
+
+    Returns:
+        List of all chat sessions ordered by most recent
+    """
+    try:
+        sessions = await sqlite_client.get_all_sessions()
+        return [
+            {
+                'session_id': session.session_id,
+                'title': session.title,
+                'created_at': session.created_at.isoformat(),
+                'updated_at': session.updated_at.isoformat()
+            }
+            for session in sessions
+        ]
+    except Exception as e:
+        logger.error(f"Error fetching sessions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/sessions/{session_id}")
+async def get_session(session_id: str):
+    """
+    Get a specific chat session.
+
+    Args:
+        session_id: Session ID
+
+    Returns:
+        Session details
+    """
+    try:
+        session = await sqlite_client.get_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        return {
+            'session_id': session.session_id,
+            'title': session.title,
+            'created_at': session.created_at.isoformat(),
+            'updated_at': session.updated_at.isoformat()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching session {session_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/sessions/{session_id}/title")
+async def update_session_title(
+    session_id: str,
+    title: str = Body(..., embed=True)
+):
+    """
+    Update session title.
+
+    Args:
+        session_id: Session ID
+        title: New title
+
+    Returns:
+        Updated session
+    """
+    try:
+        await sqlite_client.update_session_title(session_id, title)
+        session = await sqlite_client.get_session(session_id)
+        return {
+            'session_id': session.session_id,
+            'title': session.title,
+            'created_at': session.created_at.isoformat(),
+            'updated_at': session.updated_at.isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error updating session title: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/sessions/{session_id}/messages")

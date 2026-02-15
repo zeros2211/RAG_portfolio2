@@ -37,6 +37,13 @@ export const documentApi = {
   },
 }
 
+export interface ChatSession {
+  session_id: string
+  title: string
+  created_at: string
+  updated_at: string
+}
+
 export const chatApi = {
   getChatStreamUrl: (
     message: string,
@@ -49,6 +56,24 @@ export const chatApi = {
       params.append('doc_ids', docIds.join(','))
     }
     return `${API_BASE_URL}/chat/stream?${params.toString()}`
+  },
+
+  getSessions: async (): Promise<ChatSession[]> => {
+    const response = await api.get<ChatSession[]>('/chat/sessions')
+    return response.data
+  },
+
+  getSession: async (sessionId: string): Promise<ChatSession> => {
+    const response = await api.get<ChatSession>(`/chat/sessions/${sessionId}`)
+    return response.data
+  },
+
+  updateSessionTitle: async (sessionId: string, title: string): Promise<ChatSession> => {
+    const response = await api.put<ChatSession>(
+      `/chat/sessions/${sessionId}/title`,
+      { title }
+    )
+    return response.data
   },
 
   getSessionMessages: async (sessionId: string): Promise<ChatMessage[]> => {

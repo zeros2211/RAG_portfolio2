@@ -2,64 +2,50 @@ import { useState, useRef, useEffect } from 'react'
 import { ChatMessage, Source } from '@/types'
 import { chatApi } from '@/services/api'
 import { useSSE } from '@/hooks/useSSE'
-import { Button } from '@/components/ui/button'
-import { RotateCcw } from 'lucide-react'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
 import SourcesPanel from './SourcesPanel'
 
 interface ChatWindowProps {
   selectedDocIds?: string[]
+  sessionId?: string
+  onSessionIdChange?: (sessionId: string) => void
 }
 
-const SESSION_STORAGE_KEY = 'chat_session_id'
-
-export default function ChatWindow({ selectedDocIds }: ChatWindowProps) {
+export default function ChatWindow({ selectedDocIds, sessionId: propSessionId, onSessionIdChange }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [sessionId, setSessionId] = useState<string>()
+  const [sessionId, setSessionId] = useState<string | undefined>(propSessionId)
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const [currentSources, setCurrentSources] = useState<Source[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const streamingContentRef = useRef('')
 
   const { startStream } = useSSE()
 
-  // Load session and messages on mount
+  // Load messages when session ID changes
   useEffect(() => {
-    const loadSession = async () => {
-      const savedSessionId = localStorage.getItem(SESSION_STORAGE_KEY)
-      if (savedSessionId) {
-        setSessionId(savedSessionId)
+    const loadMessages = async () => {
+      if (propSessionId) {
+        setIsLoading(true)
+        setSessionId(propSessionId)
         try {
-          const loadedMessages = await chatApi.getSessionMessages(savedSessionId)
+          const loadedMessages = await chatApi.getSessionMessages(propSessionId)
           setMessages(loadedMessages)
         } catch (error) {
           console.error('Failed to load chat history:', error)
-          // If session not found, start fresh
-          localStorage.removeItem(SESSION_STORAGE_KEY)
+          setMessages([])
+        } finally {
+          setIsLoading(false)
         }
+      } else {
+        // New chat - clear messages
+        setMessages([])
+        setSessionId(undefined)
       }
-      setIsLoading(false)
     }
-    loadSession()
-  }, [])
-
-  // Save session ID to localStorage when it changes
-  useEffect(() => {
-    if (sessionId) {
-      localStorage.setItem(SESSION_STORAGE_KEY, sessionId)
-    }
-  }, [sessionId])
-
-  const handleClearChat = () => {
-    if (confirm('Are you sure you want to start a new chat? This will clear the current conversation.')) {
-      setMessages([])
-      setSessionId(undefined)
-      setCurrentSources([])
-      localStorage.removeItem(SESSION_STORAGE_KEY)
-    }
-  }
+    loadMessages()
+  }, [propSessionId])
 
   const handleMessageClick = (message: ChatMessage) => {
     if (message.sources) {
@@ -87,6 +73,9 @@ export default function ChatWindow({ selectedDocIds }: ChatWindowProps) {
     startStream(url, {
       onSession: (newSessionId) => {
         setSessionId(newSessionId)
+        if (onSessionIdChange) {
+          onSessionIdChange(newSessionId)
+        }
       },
       onToken: (text) => {
         streamingContentRef.current += text
@@ -136,20 +125,6 @@ export default function ChatWindow({ selectedDocIds }: ChatWindowProps) {
   return (
     <div className="flex h-full">
       <div className="flex-1 flex flex-col">
-        {messages.length > 0 && (
-          <div className="border-b bg-card px-4 py-2 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearChat}
-              disabled={isStreaming}
-              className="gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              New Chat
-            </Button>
-          </div>
-        )}
         <MessageList
           messages={messages}
           isStreaming={isStreaming}

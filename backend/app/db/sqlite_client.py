@@ -1,9 +1,11 @@
 from sqlmodel import SQLModel, create_engine, Session, select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import update
 from typing import List, Optional
 import logging
 import uuid
+from datetime import datetime
 
 from ..models.session import ChatSession, ChatMessage
 from ..config import settings
@@ -83,6 +85,15 @@ class SQLiteClient:
                 sources=sources
             )
             session.add(message)
+
+            # Update session's updated_at timestamp
+            statement = (
+                update(ChatSession)
+                .where(ChatSession.session_id == session_id)
+                .values(updated_at=datetime.utcnow())
+            )
+            await session.execute(statement)
+
             await session.commit()
             logger.debug(f"Added {role} message to session {session_id}")
 
@@ -113,6 +124,54 @@ class SQLiteClient:
 
             # Reverse to get chronological order (oldest first)
             return list(reversed(messages))
+
+    async def get_all_sessions(self) -> List[ChatSession]:
+        """
+        Get all chat sessions ordered by most recent.
+
+        Returns:
+            List of ChatSession objects
+        """
+        async with self.async_session() as session:
+            statement = (
+                select(ChatSession)
+                .order_by(ChatSession.updated_at.desc())
+            )
+            result = await session.execute(statement)
+            return list(result.scalars().all())
+
+    async def get_session(self, session_id: str) -> Optional[ChatSession]:
+        """
+        Get a specific session.
+
+        Args:
+            session_id: Session ID
+
+        Returns:
+            ChatSession object or None
+        """
+        async with self.async_session() as session:
+            statement = select(ChatSession).where(ChatSession.session_id == session_id)
+            result = await session.execute(statement)
+            return result.scalars().first()
+
+    async def update_session_title(self, session_id: str, title: str) -> None:
+        """
+        Update session title and updated_at timestamp.
+
+        Args:
+            session_id: Session ID
+            title: New title
+        """
+        async with self.async_session() as session:
+            statement = (
+                update(ChatSession)
+                .where(ChatSession.session_id == session_id)
+                .values(title=title, updated_at=datetime.utcnow())
+            )
+            await session.execute(statement)
+            await session.commit()
+            logger.info(f"Updated session {session_id} title to '{title}'")
 
 
 # Global instance
