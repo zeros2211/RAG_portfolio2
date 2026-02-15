@@ -148,6 +148,36 @@ async def generate_chat_stream(
         yield f"event: error\ndata: {json.dumps(error_data)}\n\n"
 
 
+@router.get("/sessions/{session_id}/messages")
+async def get_session_messages(
+    session_id: str,
+    limit: int = Query(100, description="Maximum number of messages to return")
+):
+    """
+    Get chat messages for a session.
+
+    Args:
+        session_id: Session ID
+        limit: Maximum number of messages (default 100)
+
+    Returns:
+        List of messages with role and content
+    """
+    try:
+        messages = await sqlite_client.get_recent_messages(session_id, limit)
+        return [
+            {
+                'role': msg.role,
+                'content': msg.content,
+                'created_at': msg.created_at.isoformat()
+            }
+            for msg in messages
+        ]
+    except Exception as e:
+        logger.error(f"Error fetching messages for session {session_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/stream")
 async def chat_stream(
     message: str = Query(..., description="User message"),

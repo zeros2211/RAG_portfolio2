@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { Document } from '@/types'
+import { Document, ChatMessage } from '@/types'
 
 const API_BASE_URL = '/api'
 
@@ -49,6 +49,16 @@ export const chatApi = {
       params.append('doc_ids', docIds.join(','))
     }
     return `${API_BASE_URL}/chat/stream?${params.toString()}`
+  },
+
+  getSessionMessages: async (sessionId: string): Promise<ChatMessage[]> => {
+    const response = await api.get<Array<{role: 'user' | 'assistant', content: string, created_at: string}>>(
+      `/chat/sessions/${sessionId}/messages`
+    )
+    return response.data.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+    }))
   },
 }
 
