@@ -2,17 +2,14 @@ version: '3.8'
 
 services:
   ollama:
-    image: ollama/ollama:latest
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
     container_name: rag_ollama
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - rag_network
 
@@ -39,8 +36,8 @@ services:
       - MAX_CONTEXT_TURNS=5
       - SQLITE_URL=sqlite+aiosqlite:///./data/sessions.db
     depends_on:
-      ollama:
-        condition: service_healthy
+      - ollama
+    restart: on-failure
     networks:
       - rag_network
 

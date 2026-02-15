@@ -148,7 +148,7 @@ async def generate_chat_stream(
         yield f"event: error\ndata: {json.dumps(error_data)}\n\n"
 
 
-@router.post("/stream")
+@router.get("/stream")
 async def chat_stream(
     message: str = Query(..., description="User message"),
     session_id: Optional[str] = Query(None, description="Session ID for conversation context"),

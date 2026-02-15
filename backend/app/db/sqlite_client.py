@@ -48,8 +48,8 @@ class SQLiteClient:
         async with self.async_session() as session:
             # Check if session already exists
             statement = select(ChatSession).where(ChatSession.session_id == session_id)
-            result = await session.exec(statement)
-            existing = result.first()
+            result = await session.execute(statement)
+            existing = result.scalars().first()
 
             if not existing:
                 db_session = ChatSession(session_id=session_id)
@@ -105,8 +105,8 @@ class SQLiteClient:
                 .order_by(ChatMessage.created_at.desc())
                 .limit(limit)
             )
-            result = await session.exec(statement)
-            messages = result.all()
+            result = await session.execute(statement)
+            messages = result.scalars().all()
 
             # Reverse to get chronological order (oldest first)
             return list(reversed(messages))

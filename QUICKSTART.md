@@ -7,6 +7,7 @@ This guide will help you get the RAG Chat System up and running in minutes.
 - Docker and Docker Compose installed
 - At least 8GB RAM available
 - Port 80 available (or modify docker-compose.yml)
+- Good internet connection (will download ~5.4GB of models)
 
 ## Step 1: Start the Services
 
@@ -15,27 +16,26 @@ This guide will help you get the RAG Chat System up and running in minutes.
 docker-compose up --build
 ```
 
-This will start:
-- Ollama server (for embeddings and LLM)
-- Backend API (FastAPI)
-- Frontend (React + Nginx)
+This will:
+1. Build and start Ollama server
+2. **Automatically download required AI models** (~5.4GB total)
+   - qwen3-embedding:0.6b (~400MB) for text embeddings
+   - qwen3:8b (~5GB) for chat responses
+3. Start Backend API (FastAPI)
+4. Start Frontend (React + Nginx)
 
-## Step 2: Pull Ollama Models
+**Note**: The first startup will take 5-10 minutes to download models depending on your internet connection. Subsequent starts will be much faster as models are cached.
 
-In a new terminal, pull the required models:
+## Step 2: Wait for Models to Download
 
-```bash
-# Pull embedding model (small, ~400MB)
-docker exec -it rag_ollama ollama pull qwen3-embedding:0.6b
-
-# Pull LLM model (~5GB - this may take a few minutes)
-docker exec -it rag_ollama ollama pull qwen3:8b
+Watch the logs for these messages:
+```
+ollama  | ✅ Embedding model downloaded!
+ollama  | ✅ LLM model downloaded!
+ollama  | 🎉 All models ready!
 ```
 
-**Note**: The first pull will take some time depending on your internet connection.
-
-## Step 3: Verify Models
-
+Or check model status:
 ```bash
 docker exec -it rag_ollama ollama list
 ```
@@ -44,9 +44,9 @@ You should see both models listed:
 - qwen3-embedding:0.6b
 - qwen3:8b
 
-## Step 4: Access the Application
+## Step 3: Access the Application
 
-Open your browser and navigate to:
+Once you see "All models ready!" in the logs, open your browser:
 ```
 http://localhost
 ```
@@ -72,13 +72,16 @@ http://localhost
 
 ## Troubleshooting
 
-### Models Not Found
-If you see warnings about missing models in the logs:
+### Models Not Downloading
+If models aren't downloading automatically:
 ```bash
-docker logs rag_backend
-```
+# Check Ollama logs
+docker logs rag_ollama
 
-Pull the models again as shown in Step 2.
+# Manually pull models if needed
+docker exec -it rag_ollama ollama pull qwen3-embedding:0.6b
+docker exec -it rag_ollama ollama pull qwen3:8b
+```
 
 ### Port Already in Use
 If port 80 is already in use, edit `docker-compose.yml`:
