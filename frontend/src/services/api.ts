@@ -91,6 +91,10 @@ export const chatApi = {
       sources: msg.sources,
     }))
   },
+
+  deleteSession: async (sessionId: string): Promise<void> => {
+    await api.delete(`/chat/sessions/${sessionId}`)
+  },
 }
 
 export default api

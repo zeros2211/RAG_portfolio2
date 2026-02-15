@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, create_engine, Session, select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import update
+from sqlalchemy import update, delete
 from typing import List, Optional
 import logging
 import uuid
@@ -172,6 +172,35 @@ class SQLiteClient:
             await session.execute(statement)
             await session.commit()
             logger.info(f"Updated session {session_id} title to '{title}'")
+
+    async def delete_session(self, session_id: str) -> bool:
+        """
+        Delete a session and all its messages.
+
+        Args:
+            session_id: Session ID
+
+        Returns:
+            True if session was deleted, False if not found
+        """
+        async with self.async_session() as session:
+            # Delete all messages first
+            message_statement = delete(ChatMessage).where(ChatMessage.session_id == session_id)
+            await session.execute(message_statement)
+
+            # Delete the session
+            session_statement = delete(ChatSession).where(ChatSession.session_id == session_id)
+            result = await session.execute(session_statement)
+
+            await session.commit()
+
+            deleted = result.rowcount > 0
+            if deleted:
+                logger.info(f"Deleted session {session_id}")
+            else:
+                logger.warning(f"Session {session_id} not found for deletion")
+
+            return deleted
 
 
 # Global instance

@@ -12,10 +12,11 @@ export default function ChatPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const selectedDocIds = location.state?.selectedDocIds as string[] | undefined
+  const initialSessionId = location.state?.sessionId as string | undefined
   const [selectedDocuments, setSelectedDocuments] = useState<Document[]>([])
   const [loadingDocs, setLoadingDocs] = useState(false)
   const [sessions, setSessions] = useState<ChatSession[]>([])
-  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>()
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(initialSessionId)
 
   // Load sessions
   useEffect(() => {
@@ -69,6 +70,20 @@ export default function ChatPage() {
     }
   }
 
+  const handleSessionDeleted = async () => {
+    // Refresh sessions list after deletion
+    try {
+      const allSessions = await chatApi.getSessions()
+      setSessions(allSessions)
+      // If current session was deleted, navigate to new chat
+      if (currentSessionId && !allSessions.find(s => s.session_id === currentSessionId)) {
+        setCurrentSessionId(undefined)
+      }
+    } catch (error) {
+      console.error('Failed to refresh sessions:', error)
+    }
+  }
+
   return (
     <div className="h-screen flex bg-background">
       {/* Sidebar */}
@@ -77,6 +92,7 @@ export default function ChatPage() {
         currentSessionId={currentSessionId}
         onSessionSelect={handleSessionSelect}
         onNewChat={handleNewChat}
+        onSessionDeleted={handleSessionDeleted}
       />
 
       {/* Main Content */}

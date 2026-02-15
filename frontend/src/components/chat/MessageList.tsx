@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { ChatMessage } from '@/types'
-import { User, Bot } from 'lucide-react'
+import { User, Bot, Loader2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
 interface MessageListProps {
@@ -73,10 +73,17 @@ export default function MessageList({
             <Bot className="h-5 w-5 text-primary-foreground" />
           </div>
           <Card className="max-w-[80%] p-4 bg-muted">
-            <p className="whitespace-pre-wrap break-words">
-              {streamingContent}
-              <span className="inline-block w-2 h-4 ml-1 bg-foreground animate-pulse" />
-            </p>
+            {streamingContent ? (
+              <p className="whitespace-pre-wrap break-words">
+                {streamingContent}
+                <span className="inline-block w-2 h-4 ml-1 bg-foreground animate-pulse" />
+              </p>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Thinking...</span>
+              </div>
+            )}
           </Card>
         </div>
       )}

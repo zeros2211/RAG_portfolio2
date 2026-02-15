@@ -27,21 +27,26 @@ export default function ChatWindow({ selectedDocIds, sessionId: propSessionId, o
   useEffect(() => {
     const loadMessages = async () => {
       if (propSessionId) {
-        setIsLoading(true)
-        setSessionId(propSessionId)
-        try {
-          const loadedMessages = await chatApi.getSessionMessages(propSessionId)
-          setMessages(loadedMessages)
-        } catch (error) {
-          console.error('Failed to load chat history:', error)
-          setMessages([])
-        } finally {
-          setIsLoading(false)
+        // Only load if session ID actually changed (not just updated)
+        if (propSessionId !== sessionId) {
+          setIsLoading(true)
+          setSessionId(propSessionId)
+          try {
+            const loadedMessages = await chatApi.getSessionMessages(propSessionId)
+            setMessages(loadedMessages)
+          } catch (error) {
+            console.error('Failed to load chat history:', error)
+            setMessages([])
+          } finally {
+            setIsLoading(false)
+          }
         }
       } else {
-        // New chat - clear messages
-        setMessages([])
-        setSessionId(undefined)
+        // New chat - clear messages only if we had a session before
+        if (sessionId) {
+          setMessages([])
+          setSessionId(undefined)
+        }
       }
     }
     loadMessages()

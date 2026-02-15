@@ -1,14 +1,16 @@
-import { MessageSquare, Plus } from 'lucide-react'
+import { MessageSquare, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card } from '@/components/ui/card'
-import { ChatSession } from '@/services/api'
+import { ChatSession, chatApi } from '@/services/api'
+import { useState } from 'react'
 
 interface ChatSidebarProps {
   sessions: ChatSession[]
   currentSessionId?: string
   onSessionSelect: (sessionId: string) => void
   onNewChat: () => void
+  onSessionDeleted?: () => void
 }
 
 export default function ChatSidebar({
@@ -16,7 +18,10 @@ export default function ChatSidebar({
   currentSessionId,
   onSessionSelect,
   onNewChat,
+  onSessionDeleted,
 }: ChatSidebarProps) {
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -28,6 +33,25 @@ export default function ChatSidebar({
       return 'Yesterday'
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    }
+  }
+
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent session selection
+
+    if (!confirm('Delete this chat? This action cannot be undone.')) {
+      return
+    }
+
+    setDeletingSessionId(sessionId)
+    try {
+      await chatApi.deleteSession(sessionId)
+      onSessionDeleted?.()
+    } catch (error) {
+      console.error('Failed to delete session:', error)
+      alert('Failed to delete chat. Please try again.')
+    } finally {
+      setDeletingSessionId(null)
     }
   }
 
@@ -56,7 +80,7 @@ export default function ChatSidebar({
             sessions.map((session) => (
               <Card
                 key={session.session_id}
-                className={`p-3 cursor-pointer transition-all hover:bg-accent ${
+                className={`p-3 cursor-pointer transition-all hover:bg-accent group relative ${
                   currentSessionId === session.session_id
                     ? 'bg-accent border-primary'
                     : 'bg-background'
@@ -73,6 +97,15 @@ export default function ChatSidebar({
                       {formatDate(session.updated_at)}
                     </p>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => handleDeleteSession(session.session_id, e)}
+                    disabled={deletingSessionId === session.session_id}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
                 </div>
               </Card>
             ))
