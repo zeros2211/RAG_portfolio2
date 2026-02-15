@@ -48,16 +48,18 @@ export default function ChatWindow({ selectedDocIds }: ChatWindowProps) {
       onSources: (sources) => {
         setCurrentSources(sources)
         // Add assistant message with sources using ref value
+        const finalContent = streamingContentRef.current
         setMessages((prev) => {
           const assistantMessage: ChatMessage = {
             role: 'assistant',
-            content: streamingContentRef.current,
+            content: finalContent,
             sources,
           }
           return [...prev, assistantMessage]
         })
       },
       onDone: () => {
+        // Stop streaming and cleanup after message is added
         setIsStreaming(false)
         setStreamingContent('')
         streamingContentRef.current = ''

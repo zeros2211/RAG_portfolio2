@@ -168,16 +168,16 @@ async def get_document_file(doc_id: str):
     Returns:
         PDF file
     """
-    if doc_id not in document_registry:
-        raise HTTPException(status_code=404, detail="Document not found")
-
     pdf_path = settings.PDF_DIR / f"{doc_id}.pdf"
 
     if not pdf_path.exists():
         raise HTTPException(status_code=404, detail="PDF file not found")
 
+    # Get filename from registry if available, otherwise use doc_id
+    filename = document_registry[doc_id].filename if doc_id in document_registry else f"{doc_id}.pdf"
+
     return FileResponse(
         pdf_path,
         media_type="application/pdf",
-        filename=document_registry[doc_id].filename
+        filename=filename
     )

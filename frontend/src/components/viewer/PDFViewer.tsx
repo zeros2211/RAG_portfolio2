@@ -26,6 +26,9 @@ export default function PDFViewer({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Debug: Log the PDF URL
+  console.log('PDF URL:', fileUrl)
+
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages)
     setLoading(false)
@@ -129,11 +132,16 @@ export default function PDFViewer({
 
           {!error && (
             <Document
-              file={fileUrl}
+              file={{ url: fileUrl }}
               onLoadSuccess={onDocumentLoadSuccess}
               onLoadError={onDocumentLoadError}
               loading=""
               error=""
+              options={{
+                cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
+                cMapPacked: true,
+                standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
+              }}
             >
               <div className="bg-white shadow-lg">
                 <Page
