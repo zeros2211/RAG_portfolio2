@@ -1,0 +1,15 @@
+version: '3.8'
+
+# NVIDIA GPU Override Configuration
+# Usage on Linux with NVIDIA GPU:
+#   docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up
+
+services:
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

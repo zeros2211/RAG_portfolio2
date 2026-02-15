@@ -5,15 +5,41 @@ This guide will help you get the RAG Chat System up and running in minutes.
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- At least 8GB RAM available
+- At least 8GB RAM available (12GB+ recommended for GPU mode)
 - Port 80 available (or modify docker-compose.yml)
 - Good internet connection (will download ~5.4GB of models)
+- **For GPU mode**: Linux with NVIDIA GPU and `nvidia-container-toolkit` installed
 
 ## Step 1: Start the Services
+
+Choose based on your system:
+
+### Option A: CPU Mode (macOS / Windows / Linux)
 
 ```bash
 # From the project root directory
 docker-compose up --build
+```
+
+### Option B: GPU Mode (Linux with NVIDIA GPU)
+
+**Prerequisites for GPU mode:**
+1. NVIDIA GPU with recent drivers
+2. Install nvidia-container-toolkit:
+   ```bash
+   # Ubuntu/Debian
+   distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+   curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+   curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+     sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+   sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+   sudo systemctl restart docker
+   ```
+
+**Start with GPU support:**
+```bash
+# From the project root directory
+docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up --build
 ```
 
 This will:
@@ -43,6 +69,20 @@ docker exec -it rag_ollama ollama list
 You should see both models listed:
 - qwen3-embedding:0.6b
 - qwen3:8b
+
+### Verify GPU Usage (GPU mode only)
+
+Check if GPU is being used:
+```bash
+# Check GPU detection in logs
+docker logs rag_ollama 2>&1 | grep -i "gpu\|metal\|cuda"
+
+# You should see something like:
+# "offloaded 37/37 layers to GPU"
+# "device=GPU size=4.9 GiB"
+```
+
+If you see "offloaded 0/37 layers to GPU" or "device=CPU", GPU is not being used.
 
 ## Step 3: Access the Application
 
@@ -94,17 +134,49 @@ frontend:
 Then access at `http://localhost:8080`
 
 ### Restart Everything
-To do a clean restart:
+
+**CPU mode:**
 ```bash
 docker-compose down
 docker-compose up --build
 ```
 
+**GPU mode:**
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml down
+docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up --build
+```
+
 To also clear all data (uploaded PDFs, chat history):
 ```bash
 docker-compose down -v
-docker-compose up --build
+# Then use the appropriate up command for your mode
 ```
+
+### GPU Not Working (Linux)
+
+If GPU is not being detected:
+
+1. **Check NVIDIA drivers:**
+   ```bash
+   nvidia-smi
+   ```
+   Should show your GPU.
+
+2. **Check nvidia-container-toolkit:**
+   ```bash
+   docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
+   ```
+   Should show GPU inside container.
+
+3. **Check Ollama logs:**
+   ```bash
+   docker logs rag_ollama | grep -i gpu
+   ```
+   Look for "offloaded X/Y layers to GPU" where X should equal Y.
+
+4. **Verify you're using the GPU compose file:**
+   Make sure you used `-f docker-compose.nvidia.yml` in your command.
 
 ## Next Steps
 

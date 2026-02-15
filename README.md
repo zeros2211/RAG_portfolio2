@@ -64,19 +64,53 @@ A production-ready **Retrieval-Augmented Generation (RAG)** chat system that ena
 - **Nginx** - Frontend server and API proxy
 - **Ollama** - LLM inference server
 
+## GPU Support
+
+This system supports both CPU and GPU modes:
+
+### CPU Mode (Default)
+Works on macOS, Windows, and Linux without GPU.
+
+```bash
+docker-compose up
+```
+
+### NVIDIA GPU Mode (Linux only)
+Requires NVIDIA GPU with drivers and `nvidia-container-toolkit` installed.
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up
+```
+
+**Performance comparison:**
+- CPU: ~10-20 tokens/sec (slower, higher latency)
+- GPU: ~50-100+ tokens/sec (faster, better user experience)
+
+**Note**: Docker Desktop on macOS/Windows cannot access GPU. For GPU acceleration on macOS, you would need to run Ollama natively outside Docker.
+
 ## Quick Start
 
 See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
 ### TL;DR
 
+**macOS / Windows / Linux (CPU mode):**
 ```bash
 # 1. Start services
 docker-compose up --build
 
-# 2. Pull Ollama models (in new terminal)
-docker exec -it rag_ollama ollama pull qwen3-embedding:0.6b
-docker exec -it rag_ollama ollama pull qwen3:8b
+# 2. Models download automatically, wait for "All models ready!"
+
+# 3. Open browser
+open http://localhost
+```
+
+**Linux with NVIDIA GPU:**
+```bash
+# 1. Start services with GPU support
+docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up --build
+
+# 2. Models download automatically with GPU acceleration
 
 # 3. Open browser
 open http://localhost
@@ -298,6 +332,22 @@ docker-compose up --build frontend
 - Ensure nginx has `proxy_buffering off` in config
 - Check browser console for EventSource errors
 - Verify CORS settings in backend
+
+### GPU Not Detected (Linux)
+```bash
+# Verify NVIDIA drivers
+nvidia-smi
+
+# Check if Docker can access GPU
+docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
+
+# Check Ollama is using GPU
+docker logs rag_ollama | grep -i "offloaded.*gpu"
+# Should show: "offloaded 37/37 layers to GPU"
+
+# Ensure you're using the GPU compose file
+docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up
+```
 
 ## Security Considerations
 
