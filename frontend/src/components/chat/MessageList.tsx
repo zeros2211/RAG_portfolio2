@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { ChatMessage } from '@/types'
 import { User, Bot } from 'lucide-react'
 import { Card } from '@/components/ui/card'

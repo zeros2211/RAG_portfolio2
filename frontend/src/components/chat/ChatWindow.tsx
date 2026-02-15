@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { ChatMessage, Source } from '@/types'
 import { chatApi } from '@/services/api'
 import { useSSE } from '@/hooks/useSSE'
@@ -18,7 +18,7 @@ export default function ChatWindow({ selectedDocIds }: ChatWindowProps) {
   const [currentSources, setCurrentSources] = useState<Source[]>([])
   const streamingContentRef = useRef('')
 
-  const { startStream, stopStream } = useSSE()
+  const { startStream } = useSSE()
 
   const handleSendMessage = (message: string) => {
     // Add user message

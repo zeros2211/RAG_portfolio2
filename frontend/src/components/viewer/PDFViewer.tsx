@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,7 +17,6 @@ interface PDFViewerProps {
 }
 
 export default function PDFViewer({
-  docId,
   initialPage = 1,
   fileUrl,
 }: PDFViewerProps) {

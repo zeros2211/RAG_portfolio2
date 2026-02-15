@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent } from 'react'
+import { useState, KeyboardEvent } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-react'
