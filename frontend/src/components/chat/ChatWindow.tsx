@@ -15,7 +15,7 @@ interface ChatWindowProps {
 
 export default function ChatWindow({ selectedDocIds, sessionId: propSessionId, onSessionIdChange }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [sessionId, setSessionId] = useState<string | undefined>(propSessionId)
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined)
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const [currentSources, setCurrentSources] = useState<Source[]>([])
