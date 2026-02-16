@@ -1,0 +1,38 @@
+version: '3.8'
+
+# Native Ollama Override Configuration
+# Use this when running Ollama natively on macOS with Metal GPU support
+#
+# Prerequisites:
+#   1. Install Ollama natively: brew install ollama
+#   2. Start Ollama: ollama serve
+#   3. Pull models:
+#      - ollama pull qwen3-embedding:0.6b
+#      - ollama pull qwen3:8b
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up
+
+services:
+  # Disable the Docker Ollama service
+  ollama:
+    deploy:
+      replicas: 0
+
+  # Update backend to use native Ollama
+  backend:
+    environment:
+      # Point to native Ollama on Mac host
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - EMBEDDING_MODEL=qwen3-embedding:0.6b
+      - LLM_MODEL=qwen3:8b
+      - DATA_DIR=/app/data
+      - PDF_DIR=/app/data/pdfs
+      - CHROMA_DIR=/app/data/chroma
+      - CHUNK_SIZE=1000
+      - CHUNK_OVERLAP=150
+      - TOP_K=5
+      - MAX_CONTEXT_TURNS=5
+      - SQLITE_URL=sqlite+aiosqlite:///./data/sessions.db
+    # Remove dependency on Docker Ollama
+    depends_on: []

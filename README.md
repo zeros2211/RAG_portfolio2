@@ -1,5 +1,7 @@
 # RAG Chat System
 
+[한국어](README.ko.md) | English
+
 A production-ready **Retrieval-Augmented Generation (RAG)** chat system that enables users to upload PDF documents and ask questions through an intelligent conversational interface. Built with modern web technologies and designed for one-command deployment.
 
 ## Features
@@ -66,27 +68,38 @@ A production-ready **Retrieval-Augmented Generation (RAG)** chat system that ena
 
 ## GPU Support
 
-This system supports both CPU and GPU modes:
+This system supports GPU acceleration for different platforms:
 
-### CPU Mode (Default)
-Works on macOS, Windows, and Linux without GPU.
+### For Linux with NVIDIA GPU (Default)
+Requires NVIDIA GPU with drivers and `nvidia-container-toolkit` installed.
 
 ```bash
 docker-compose up
 ```
 
-### NVIDIA GPU Mode (Linux only)
-Requires NVIDIA GPU with drivers and `nvidia-container-toolkit` installed.
+### For macOS (Metal GPU via Native Ollama)
+**⚠️ Important**: macOS users MUST use this method. The default `docker-compose up` will fail on macOS due to NVIDIA driver configuration.
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up
+# 1. Install Ollama natively
+brew install ollama
+
+# 2. Start Ollama and pull models
+ollama serve &
+ollama pull qwen3-embedding:0.6b
+ollama pull qwen3:8b
+
+# 3. Start backend and frontend (without Docker Ollama)
+docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up
 ```
 
-**Performance comparison:**
-- CPU: ~10-20 tokens/sec (slower, higher latency)
-- GPU: ~50-100+ tokens/sec (faster, better user experience)
+### For Other Systems (CPU Mode)
+If you're on Windows or Linux without NVIDIA GPU, you'll need to use CPU mode. Contact the maintainer for CPU-only docker-compose configuration.
 
-**Note**: Docker Desktop on macOS/Windows cannot access GPU. For GPU acceleration on macOS, you would need to run Ollama natively outside Docker.
+**Performance comparison:**
+- CPU mode: ~10-20 tokens/sec
+- **GPU (Linux with NVIDIA)**: ~50-100+ tokens/sec ⚡ (Default)
+- **Metal (macOS Native)**: ~80-150+ tokens/sec ⚡ (Best for Mac)
 
 ## Quick Start
 
@@ -94,23 +107,28 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
 ### TL;DR
 
-**macOS / Windows / Linux (CPU mode):**
+**Linux with NVIDIA GPU:**
 ```bash
 # 1. Start services
 docker-compose up --build
 
-# 2. Models download automatically, wait for "All models ready!"
+# 2. Models download automatically with GPU acceleration
+#    Wait for "All models ready!"
 
 # 3. Open browser
 open http://localhost
 ```
 
-**Linux with NVIDIA GPU:**
+**macOS with Native Ollama (Metal GPU):**
 ```bash
-# 1. Start services with GPU support
-docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up --build
+# 1. Install and start native Ollama
+brew install ollama
+ollama serve &
+ollama pull qwen3-embedding:0.6b
+ollama pull qwen3:8b
 
-# 2. Models download automatically with GPU acceleration
+# 2. Start backend and frontend
+docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up --build
 
 # 3. Open browser
 open http://localhost
@@ -362,34 +380,3 @@ docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up
   - All processing happens locally
   - No data sent to external services
   - Uploaded PDFs stored in local filesystem
-
-## License
-
-This project is open source and available under the MIT License.
-
-## Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## Acknowledgments
-
-- Built with [FastAPI](https://fastapi.tiangolo.com/)
-- UI components from [shadcn/ui](https://ui.shadcn.com/)
-- PDF processing with [PyMuPDF](https://pymupdf.readthedocs.io/)
-- Vector search with [ChromaDB](https://www.trychroma.com/)
-- LLM inference via [Ollama](https://ollama.ai/)
-
-## Support
-
-For issues and questions:
-- Open an issue on GitHub
-- Check existing issues for solutions
-- Review logs for error messages
-
----
-
-**Built with Claude Code** - A production-ready RAG system demonstrating modern full-stack development practices.

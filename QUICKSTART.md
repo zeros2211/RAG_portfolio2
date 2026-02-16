@@ -1,29 +1,36 @@
 # RAG Chat System - Quick Start Guide
 
+[한국어](QUICKSTART.ko.md) | English
+
 This guide will help you get the RAG Chat System up and running in minutes.
 
 ## Prerequisites
 
+### Common Requirements
 - Docker and Docker Compose installed
-- At least 8GB RAM available (12GB+ recommended for GPU mode)
+- At least 8GB RAM available (12GB+ recommended)
 - Port 80 available (or modify docker-compose.yml)
 - Good internet connection (will download ~5.4GB of models)
-- **For GPU mode**: Linux with NVIDIA GPU and `nvidia-container-toolkit` installed
+
+### Platform-Specific Requirements
+
+**For Linux with NVIDIA GPU:**
+- NVIDIA GPU with recent drivers
+- `nvidia-container-toolkit` installed
+- Use: `docker-compose up`
+
+**For macOS:**
+- Homebrew installed
+- Native Ollama (installed via brew)
+- Use: `docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up`
 
 ## Step 1: Start the Services
 
-Choose based on your system:
+Choose the appropriate method for your system:
 
-### Option A: CPU Mode (macOS / Windows / Linux)
+### For Linux with NVIDIA GPU
 
-```bash
-# From the project root directory
-docker-compose up --build
-```
-
-### Option B: GPU Mode (Linux with NVIDIA GPU)
-
-**Prerequisites for GPU mode:**
+**Prerequisites:**
 1. NVIDIA GPU with recent drivers
 2. Install nvidia-container-toolkit:
    ```bash
@@ -36,11 +43,34 @@ docker-compose up --build
    sudo systemctl restart docker
    ```
 
-**Start with GPU support:**
+**Start services:**
 ```bash
 # From the project root directory
-docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up --build
+docker-compose up --build
 ```
+
+Performance: ~50-100+ tokens/sec with GPU acceleration
+
+### For macOS (Metal GPU via Native Ollama)
+
+**⚠️ Important**: macOS users MUST use this method. Running `docker-compose up` on macOS will fail with:
+```
+Error response from daemon: could not select device driver "nvidia" with capabilities: [[gpu]]
+```
+
+**Setup and start:**
+```bash
+# 1. Install and start Ollama natively
+brew install ollama
+ollama serve &
+ollama pull qwen3-embedding:0.6b
+ollama pull qwen3:8b
+
+# 2. Start backend and frontend (without Docker Ollama)
+docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up --build
+```
+
+Performance: ~80-150+ tokens/sec with Metal GPU acceleration
 
 This will:
 1. Build and start Ollama server
@@ -135,16 +165,16 @@ Then access at `http://localhost:8080`
 
 ### Restart Everything
 
-**CPU mode:**
+**Default mode:**
 ```bash
 docker-compose down
 docker-compose up --build
 ```
 
-**GPU mode:**
+**Native Ollama mode:**
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml down
-docker-compose -f docker-compose.yml -f docker-compose.nvidia.yml up --build
+docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml down
+docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up --build
 ```
 
 To also clear all data (uploaded PDFs, chat history):
@@ -153,9 +183,22 @@ docker-compose down -v
 # Then use the appropriate up command for your mode
 ```
 
+### Error on macOS: "could not select device driver nvidia"
+
+This is expected! macOS users should use the Native Ollama method instead:
+```bash
+# Stop any running containers first
+docker-compose down
+
+# Use Native Ollama method
+docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up
+```
+
+See the "For macOS" section in Step 1 for full setup instructions.
+
 ### GPU Not Working (Linux)
 
-If GPU is not being detected:
+If GPU is not being detected on Linux:
 
 1. **Check NVIDIA drivers:**
    ```bash
@@ -175,8 +218,8 @@ If GPU is not being detected:
    ```
    Look for "offloaded X/Y layers to GPU" where X should equal Y.
 
-4. **Verify you're using the GPU compose file:**
-   Make sure you used `-f docker-compose.nvidia.yml` in your command.
+4. **Verify nvidia-container-toolkit is properly configured:**
+   Ensure nvidia-container-toolkit is installed and Docker daemon was restarted after installation.
 
 ## Next Steps
 
