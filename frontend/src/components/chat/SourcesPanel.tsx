@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -7,11 +6,10 @@ import { FileText, ExternalLink } from 'lucide-react'
 
 interface SourcesPanelProps {
   sources: Source[]
+  onSourceClick?: (source: Source) => void
 }
 
-export default function SourcesPanel({ sources }: SourcesPanelProps) {
-  const navigate = useNavigate()
-
+export default function SourcesPanel({ sources, onSourceClick }: SourcesPanelProps) {
   if (sources.length === 0) {
     return (
       <div className="w-80 border-l bg-muted/20 p-4">
@@ -24,7 +22,7 @@ export default function SourcesPanel({ sources }: SourcesPanelProps) {
   }
 
   const handleSourceClick = (source: Source) => {
-    navigate(`/viewer?docId=${source.doc_id}&page=${source.page}`)
+    onSourceClick?.(source)
   }
 
   const getScoreColor = (score: number) => {

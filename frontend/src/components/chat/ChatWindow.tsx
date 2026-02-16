@@ -5,6 +5,7 @@ import { useSSE } from '@/hooks/useSSE'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
 import SourcesPanel from './SourcesPanel'
+import PDFViewerModal from '../viewer/PDFViewerModal'
 
 interface ChatWindowProps {
   selectedDocIds?: string[]
@@ -19,6 +20,12 @@ export default function ChatWindow({ selectedDocIds, sessionId: propSessionId, o
   const [streamingContent, setStreamingContent] = useState('')
   const [currentSources, setCurrentSources] = useState<Source[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [pdfModalOpen, setPdfModalOpen] = useState(false)
+  const [selectedPdf, setSelectedPdf] = useState<{
+    docId: string
+    filename: string
+    page: number
+  } | null>(null)
   const streamingContentRef = useRef('')
 
   const { startStream } = useSSE()
@@ -56,6 +63,19 @@ export default function ChatWindow({ selectedDocIds, sessionId: propSessionId, o
     if (message.sources) {
       setCurrentSources(message.sources)
     }
+  }
+
+  const handleSourceClick = (source: Source) => {
+    setSelectedPdf({
+      docId: source.doc_id,
+      filename: source.filename,
+      page: source.page,
+    })
+    setPdfModalOpen(true)
+  }
+
+  const handleClosePdfModal = () => {
+    setPdfModalOpen(false)
   }
 
   const handleSendMessage = (message: string) => {
@@ -128,20 +148,29 @@ export default function ChatWindow({ selectedDocIds, sessionId: propSessionId, o
   }
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 flex flex-col">
-        <MessageList
-          messages={messages}
-          isStreaming={isStreaming}
-          streamingContent={streamingContent}
-          onMessageClick={handleMessageClick}
-        />
-        <MessageInput
-          onSendMessage={handleSendMessage}
-          disabled={isStreaming}
-        />
+    <>
+      <div className="flex h-full">
+        <div className="flex-1 flex flex-col">
+          <MessageList
+            messages={messages}
+            isStreaming={isStreaming}
+            streamingContent={streamingContent}
+            onMessageClick={handleMessageClick}
+          />
+          <MessageInput
+            onSendMessage={handleSendMessage}
+            disabled={isStreaming}
+          />
+        </div>
+        <SourcesPanel sources={currentSources} onSourceClick={handleSourceClick} />
       </div>
-      <SourcesPanel sources={currentSources} />
-    </div>
+      <PDFViewerModal
+        open={pdfModalOpen}
+        onClose={handleClosePdfModal}
+        docId={selectedPdf?.docId || null}
+        filename={selectedPdf?.filename || null}
+        initialPage={selectedPdf?.page || 1}
+      />
+    </>
   )
 }
