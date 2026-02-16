@@ -53,12 +53,6 @@ export default function ChatPage() {
     loadDocuments()
   }, [selectedDocIds])
 
-  const handleNewChat = () => {
-    setCurrentSessionId(undefined)
-    setSelectedDocIds(undefined)
-    setSelectedDocuments([])
-  }
-
   const handleSessionSelect = (sessionId: string) => {
     setCurrentSessionId(sessionId)
     // Load doc_ids from selected session
@@ -103,7 +97,6 @@ export default function ChatPage() {
         sessions={sessions}
         currentSessionId={currentSessionId}
         onSessionSelect={handleSessionSelect}
-        onNewChat={handleNewChat}
         onSessionDeleted={handleSessionDeleted}
       />
 

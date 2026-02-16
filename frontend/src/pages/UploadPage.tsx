@@ -93,10 +93,6 @@ export default function UploadPage() {
     })
   }
 
-  const handleNewChat = () => {
-    navigate('/chat')
-  }
-
   const handleSessionSelect = (sessionId: string) => {
     const session = sessions.find(s => s.session_id === sessionId)
     navigate('/chat', {
@@ -128,7 +124,6 @@ export default function UploadPage() {
         sessions={sessions}
         currentSessionId={undefined}
         onSessionSelect={handleSessionSelect}
-        onNewChat={handleNewChat}
         onSessionDeleted={handleSessionDeleted}
       />
 

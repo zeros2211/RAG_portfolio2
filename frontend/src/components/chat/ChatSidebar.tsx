@@ -1,4 +1,4 @@
-import { MessageSquare, Plus, Trash2 } from 'lucide-react'
+import { MessageSquare, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card } from '@/components/ui/card'
@@ -9,7 +9,6 @@ interface ChatSidebarProps {
   sessions: ChatSession[]
   currentSessionId?: string
   onSessionSelect: (sessionId: string) => void
-  onNewChat: () => void
   onSessionDeleted?: () => void
 }
 
@@ -17,7 +16,6 @@ export default function ChatSidebar({
   sessions,
   currentSessionId,
   onSessionSelect,
-  onNewChat,
   onSessionDeleted,
 }: ChatSidebarProps) {
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
@@ -59,14 +57,9 @@ export default function ChatSidebar({
     <div className="w-64 border-r bg-muted/10 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b">
-        <Button
-          onClick={onNewChat}
-          className="w-full gap-2"
-          variant="default"
-        >
-          <Plus className="h-4 w-4" />
-          New Chat
-        </Button>
+        <h2 className="text-lg font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          RAG System
+        </h2>
       </div>
 
       {/* Sessions List */}
