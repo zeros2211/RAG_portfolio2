@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -22,13 +23,25 @@ export default function PDFViewerModal({
   filename,
   initialPage = 1,
 }: PDFViewerModalProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
   if (!docId) return null
 
   const fileUrl = documentApi.getDocumentFileUrl(docId)
 
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] p-0 gap-0">
+      <DialogContent
+        className={
+          isFullscreen
+            ? "max-w-full h-screen w-screen p-0 gap-0 m-0 rounded-none"
+            : "max-w-6xl h-[90vh] p-0 gap-0"
+        }
+      >
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>{filename || 'PDF Document'}</DialogTitle>
         </DialogHeader>
@@ -37,6 +50,8 @@ export default function PDFViewerModal({
             docId={docId}
             initialPage={initialPage}
             fileUrl={fileUrl}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={toggleFullscreen}
           />
         </div>
       </DialogContent>

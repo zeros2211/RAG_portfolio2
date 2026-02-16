@@ -3,7 +3,7 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, Maximize2, Minimize2 } from 'lucide-react'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
@@ -14,11 +14,15 @@ interface PDFViewerProps {
   docId: string
   initialPage?: number
   fileUrl: string
+  isFullscreen?: boolean
+  onToggleFullscreen?: () => void
 }
 
 export default function PDFViewer({
   initialPage = 1,
   fileUrl,
+  isFullscreen = false,
+  onToggleFullscreen,
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [pageNumber, setPageNumber] = useState<number>(initialPage)
@@ -108,7 +112,22 @@ export default function PDFViewer({
             </span>
           </form>
 
-          <div className="w-24" />
+          <div className="flex items-center gap-2">
+            {onToggleFullscreen && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onToggleFullscreen}
+                className="focus:outline-none focus-visible:ring-0"
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="h-5 w-5" />
+                ) : (
+                  <Maximize2 className="h-5 w-5" />
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
