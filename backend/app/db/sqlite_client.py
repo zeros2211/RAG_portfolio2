@@ -34,12 +34,13 @@ class SQLiteClient:
             await conn.run_sync(SQLModel.metadata.create_all)
         logger.info("Database tables initialized")
 
-    async def create_session(self, session_id: str = None) -> str:
+    async def create_session(self, session_id: str = None, doc_ids: Optional[List[str]] = None) -> str:
         """
         Create a new chat session.
 
         Args:
             session_id: Optional session ID (generates UUID if not provided)
+            doc_ids: Optional list of document IDs used in this session
 
         Returns:
             Session ID
@@ -54,10 +55,10 @@ class SQLiteClient:
             existing = result.scalars().first()
 
             if not existing:
-                db_session = ChatSession(session_id=session_id)
+                db_session = ChatSession(session_id=session_id, doc_ids=doc_ids)
                 session.add(db_session)
                 await session.commit()
-                logger.info(f"Created session {session_id}")
+                logger.info(f"Created session {session_id} with doc_ids: {doc_ids}")
 
         return session_id
 
@@ -172,6 +173,24 @@ class SQLiteClient:
             await session.execute(statement)
             await session.commit()
             logger.info(f"Updated session {session_id} title to '{title}'")
+
+    async def update_session_doc_ids(self, session_id: str, doc_ids: List[str]) -> None:
+        """
+        Update session document IDs.
+
+        Args:
+            session_id: Session ID
+            doc_ids: List of document IDs
+        """
+        async with self.async_session() as session:
+            statement = (
+                update(ChatSession)
+                .where(ChatSession.session_id == session_id)
+                .values(doc_ids=doc_ids, updated_at=datetime.utcnow())
+            )
+            await session.execute(statement)
+            await session.commit()
+            logger.info(f"Updated session {session_id} doc_ids: {doc_ids}")
 
     async def delete_session(self, session_id: str) -> bool:
         """

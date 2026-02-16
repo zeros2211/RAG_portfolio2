@@ -11,7 +11,9 @@ import { Document } from '@/types'
 export default function ChatPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const selectedDocIds = location.state?.selectedDocIds as string[] | undefined
+  const [selectedDocIds, setSelectedDocIds] = useState<string[] | undefined>(
+    location.state?.selectedDocIds as string[] | undefined
+  )
   const initialSessionId = location.state?.sessionId as string | undefined
   const [selectedDocuments, setSelectedDocuments] = useState<Document[]>([])
   const [loadingDocs, setLoadingDocs] = useState(false)
@@ -53,10 +55,20 @@ export default function ChatPage() {
 
   const handleNewChat = () => {
     setCurrentSessionId(undefined)
+    setSelectedDocIds(undefined)
+    setSelectedDocuments([])
   }
 
   const handleSessionSelect = (sessionId: string) => {
     setCurrentSessionId(sessionId)
+    // Load doc_ids from selected session
+    const session = sessions.find(s => s.session_id === sessionId)
+    if (session && session.doc_ids) {
+      setSelectedDocIds(session.doc_ids)
+    } else {
+      setSelectedDocIds(undefined)
+      setSelectedDocuments([])
+    }
   }
 
   const handleSessionIdChange = async (sessionId: string) => {

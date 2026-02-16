@@ -81,8 +81,12 @@ async def generate_chat_stream(
     - event: error
     """
     try:
-        # Ensure session exists
-        await sqlite_client.create_session(session_id)
+        # Ensure session exists and store doc_ids
+        await sqlite_client.create_session(session_id, doc_ids)
+
+        # If session already exists, update doc_ids
+        if doc_ids:
+            await sqlite_client.update_session_doc_ids(session_id, doc_ids)
 
         # Send session ID
         yield f"event: session\ndata: {json.dumps({'session_id': session_id})}\n\n"
@@ -172,6 +176,7 @@ async def get_sessions():
             {
                 'session_id': session.session_id,
                 'title': session.title,
+                'doc_ids': session.doc_ids or [],
                 'created_at': session.created_at.isoformat(),
                 'updated_at': session.updated_at.isoformat()
             }
@@ -200,6 +205,7 @@ async def get_session(session_id: str):
         return {
             'session_id': session.session_id,
             'title': session.title,
+            'doc_ids': session.doc_ids or [],
             'created_at': session.created_at.isoformat(),
             'updated_at': session.updated_at.isoformat()
         }
@@ -254,6 +260,7 @@ async def update_session_title(
         return {
             'session_id': session.session_id,
             'title': session.title,
+            'doc_ids': session.doc_ids or [],
             'created_at': session.created_at.isoformat(),
             'updated_at': session.updated_at.isoformat()
         }

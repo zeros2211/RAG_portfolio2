@@ -98,7 +98,13 @@ export default function UploadPage() {
   }
 
   const handleSessionSelect = (sessionId: string) => {
-    navigate('/chat', { state: { sessionId } })
+    const session = sessions.find(s => s.session_id === sessionId)
+    navigate('/chat', {
+      state: {
+        sessionId,
+        selectedDocIds: session?.doc_ids || []
+      }
+    })
   }
 
   const handleSessionDeleted = async () => {

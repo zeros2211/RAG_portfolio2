@@ -40,6 +40,7 @@ export const documentApi = {
 export interface ChatSession {
   session_id: string
   title: string
+  doc_ids: string[]
   created_at: string
   updated_at: string
 }
