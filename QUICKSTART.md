@@ -1,38 +1,38 @@
-# RAG Chat System - Quick Start Guide
+# RAG 채팅 시스템 - 빠른 시작 가이드
 
-[한국어](QUICKSTART.ko.md) | English
+한국어 | [English](QUICKSTART.md)
 
-This guide will help you get the RAG Chat System up and running in minutes.
+이 가이드는 RAG 채팅 시스템을 몇 분 만에 실행하는 데 도움이 됩니다.
 
-## Prerequisites
+## 사전 요구사항
 
-### Common Requirements
-- Docker and Docker Compose installed
-- At least 8GB RAM available (12GB+ recommended)
-- Port 80 available (or modify docker-compose.yml)
-- Good internet connection (will download ~5.4GB of models)
+### 공통 요구사항
+- Docker 및 Docker Compose 설치
+- 최소 8GB RAM 사용 가능 (12GB+ 권장)
+- 포트 80 사용 가능 (또는 docker-compose.yml 수정)
+- 좋은 인터넷 연결 (약 5.4GB의 모델 다운로드)
 
-### Platform-Specific Requirements
+### 플랫폼별 요구사항
 
-**For Linux with NVIDIA GPU:**
-- NVIDIA GPU with recent drivers
-- `nvidia-container-toolkit` installed
-- Use: `docker-compose up`
+**NVIDIA GPU가 있는 Linux:**
+- 최신 드라이버가 있는 NVIDIA GPU
+- `nvidia-container-toolkit` 설치
+- 사용: `docker-compose up`
 
-**For macOS:**
-- Homebrew installed
-- Native Ollama (installed via brew)
-- Use: `docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up`
+**macOS:**
+- Homebrew 설치
+- 네이티브 Ollama (brew를 통해 설치)
+- 사용: `docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up`
 
-## Step 1: Start the Services
+## 1단계: 서비스 시작
 
-Choose the appropriate method for your system:
+시스템에 맞는 방법을 선택하세요:
 
-### For Linux with NVIDIA GPU
+### NVIDIA GPU가 있는 Linux용
 
-**Prerequisites:**
-1. NVIDIA GPU with recent drivers
-2. Install nvidia-container-toolkit:
+**사전 요구사항:**
+1. 최신 드라이버가 있는 NVIDIA GPU
+2. nvidia-container-toolkit 설치:
    ```bash
    # Ubuntu/Debian
    distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
@@ -43,206 +43,206 @@ Choose the appropriate method for your system:
    sudo systemctl restart docker
    ```
 
-**Start services:**
+**서비스 시작:**
 ```bash
-# From the project root directory
+# 프로젝트 루트 디렉토리에서
 docker-compose up --build
 ```
 
-Performance: ~50-100+ tokens/sec with GPU acceleration
+성능: GPU 가속으로 ~50-100+ 토큰/초
 
-### For macOS (Metal GPU via Native Ollama)
+### macOS용 (네이티브 Ollama를 통한 Metal GPU)
 
-**⚠️ Important**: macOS users MUST use this method. Running `docker-compose up` on macOS will fail with:
+**⚠️ 중요**: macOS 사용자는 반드시 이 방법을 사용해야 합니다. macOS에서 `docker-compose up`을 실행하면 다음 오류가 발생합니다:
 ```
 Error response from daemon: could not select device driver "nvidia" with capabilities: [[gpu]]
 ```
 
-**Setup and start:**
+**설정 및 시작:**
 ```bash
-# 1. Install and start Ollama natively
+# 1. Ollama를 네이티브로 설치 및 시작
 brew install ollama
 ollama serve &
 ollama pull qwen3-embedding:0.6b
 ollama pull qwen3:8b
 
-# 2. Start backend and frontend (without Docker Ollama)
+# 2. 백엔드와 프론트엔드 시작 (Docker Ollama 제외)
 docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up --build
 ```
 
-Performance: ~80-150+ tokens/sec with Metal GPU acceleration
+성능: Metal GPU 가속으로 ~80-150+ 토큰/초
 
-This will:
-1. Build and start Ollama server
-2. **Automatically download required AI models** (~5.4GB total)
-   - qwen3-embedding:0.6b (~400MB) for text embeddings
-   - qwen3:8b (~5GB) for chat responses
-3. Start Backend API (FastAPI)
-4. Start Frontend (React + Nginx)
+다음을 수행합니다:
+1. Ollama 서버 빌드 및 시작
+2. **필요한 AI 모델 자동 다운로드** (총 약 5.4GB)
+   - qwen3-embedding:0.6b (~400MB) - 텍스트 임베딩용
+   - qwen3:8b (~5GB) - 채팅 응답용
+3. 백엔드 API 시작 (FastAPI)
+4. 프론트엔드 시작 (React + Nginx)
 
-**Note**: The first startup will take 5-10 minutes to download models depending on your internet connection. Subsequent starts will be much faster as models are cached.
+**참고**: 첫 번째 시작은 인터넷 연결에 따라 모델을 다운로드하는 데 5-10분이 걸립니다. 이후 시작은 모델이 캐시되므로 훨씬 빠릅니다.
 
-## Step 2: Wait for Models to Download
+## 2단계: 모델 다운로드 대기
 
-Watch the logs for these messages:
+로그에서 다음 메시지를 확인하세요:
 ```
 ollama  | ✅ Embedding model downloaded!
 ollama  | ✅ LLM model downloaded!
 ollama  | 🎉 All models ready!
 ```
 
-Or check model status:
+또는 모델 상태를 확인하세요:
 ```bash
 docker exec -it rag_ollama ollama list
 ```
 
-You should see both models listed:
+두 모델이 나열되어야 합니다:
 - qwen3-embedding:0.6b
 - qwen3:8b
 
-### Verify GPU Usage (GPU mode only)
+### GPU 사용 확인 (GPU 모드만)
 
-Check if GPU is being used:
+GPU가 사용되는지 확인:
 ```bash
-# Check GPU detection in logs
+# 로그에서 GPU 감지 확인
 docker logs rag_ollama 2>&1 | grep -i "gpu\|metal\|cuda"
 
-# You should see something like:
+# 다음과 같이 표시되어야 합니다:
 # "offloaded 37/37 layers to GPU"
 # "device=GPU size=4.9 GiB"
 ```
 
-If you see "offloaded 0/37 layers to GPU" or "device=CPU", GPU is not being used.
+"offloaded 0/37 layers to GPU" 또는 "device=CPU"가 표시되면 GPU가 사용되지 않는 것입니다.
 
-## Step 3: Access the Application
+## 3단계: 애플리케이션 액세스
 
-Once you see "All models ready!" in the logs, open your browser:
+로그에서 "All models ready!"가 표시되면 브라우저를 여세요:
 ```
 http://localhost
 ```
 
-## Using the System
+## 시스템 사용
 
-### 1. Upload Documents
+### 1. 문서 업로드
 
-- Drag and drop PDF files onto the upload zone, or click "Select Files"
-- Wait for the status to change from "Processing" to "Ready"
-- Select specific documents to chat with, or leave all selected
+- PDF 파일을 업로드 영역으로 드래그앤드롭하거나 "파일 선택" 클릭
+- 상태가 "처리 중"에서 "준비 완료"로 변경될 때까지 대기
+- 채팅할 특정 문서를 선택하거나 모두 선택된 상태로 두기
 
-### 2. Start Chat
+### 2. 채팅 시작
 
-- Click "Start Chat" button
-- You'll be redirected to the chat interface
-- Ask questions about your uploaded documents
+- "채팅 시작" 버튼 클릭
+- 채팅 인터페이스로 리디렉션됨
+- 업로드한 문서에 대해 질문하기
 
-### 3. View Sources
+### 3. 출처 보기
 
-- After each response, sources will appear in the right panel
-- Click on any source to view the PDF at the specific page
+- 각 응답 후 오른쪽 패널에 출처가 표시됨
+- 출처를 클릭하여 특정 페이지의 PDF 보기
 
-## Troubleshooting
+## 문제 해결
 
-### Models Not Downloading
-If models aren't downloading automatically:
+### 모델이 다운로드되지 않음
+모델이 자동으로 다운로드되지 않는 경우:
 ```bash
-# Check Ollama logs
+# Ollama 로그 확인
 docker logs rag_ollama
 
-# Manually pull models if needed
+# 필요한 경우 수동으로 모델 다운로드
 docker exec -it rag_ollama ollama pull qwen3-embedding:0.6b
 docker exec -it rag_ollama ollama pull qwen3:8b
 ```
 
-### Port Already in Use
-If port 80 is already in use, edit `docker-compose.yml`:
+### 포트가 이미 사용 중
+포트 80이 이미 사용 중인 경우 `docker-compose.yml` 편집:
 ```yaml
 frontend:
   ports:
-    - "8080:80"  # Change to 8080 or any available port
+    - "8080:80"  # 8080 또는 사용 가능한 포트로 변경
 ```
 
-Then access at `http://localhost:8080`
+그런 다음 `http://localhost:8080`에서 액세스
 
-### Restart Everything
+### 모두 재시작
 
-**Default mode:**
+**기본 모드:**
 ```bash
 docker-compose down
 docker-compose up --build
 ```
 
-**Native Ollama mode:**
+**네이티브 Ollama 모드:**
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml down
 docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up --build
 ```
 
-To also clear all data (uploaded PDFs, chat history):
+모든 데이터(업로드된 PDF, 채팅 히스토리)도 지우려면:
 ```bash
 docker-compose down -v
-# Then use the appropriate up command for your mode
+# 그런 다음 모드에 맞는 up 명령 사용
 ```
 
-### Error on macOS: "could not select device driver nvidia"
+### macOS에서 오류 발생: "could not select device driver nvidia"
 
-This is expected! macOS users should use the Native Ollama method instead:
+이는 예상된 동작입니다! macOS 사용자는 네이티브 Ollama 방법을 사용해야 합니다:
 ```bash
-# Stop any running containers first
+# 먼저 실행 중인 컨테이너 중지
 docker-compose down
 
-# Use Native Ollama method
+# 네이티브 Ollama 방법 사용
 docker-compose -f docker-compose.yml -f docker-compose.native_ollama.yml up
 ```
 
-See the "For macOS" section in Step 1 for full setup instructions.
+전체 설정 지침은 1단계의 "macOS용" 섹션을 참조하세요.
 
-### GPU Not Working (Linux)
+### GPU가 작동하지 않음 (Linux)
 
-If GPU is not being detected on Linux:
+Linux에서 GPU가 감지되지 않는 경우:
 
-1. **Check NVIDIA drivers:**
+1. **NVIDIA 드라이버 확인:**
    ```bash
    nvidia-smi
    ```
-   Should show your GPU.
+   GPU가 표시되어야 합니다.
 
-2. **Check nvidia-container-toolkit:**
+2. **nvidia-container-toolkit 확인:**
    ```bash
    docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi
    ```
-   Should show GPU inside container.
+   컨테이너 내부에 GPU가 표시되어야 합니다.
 
-3. **Check Ollama logs:**
+3. **Ollama 로그 확인:**
    ```bash
    docker logs rag_ollama | grep -i gpu
    ```
-   Look for "offloaded X/Y layers to GPU" where X should equal Y.
+   "offloaded X/Y layers to GPU"를 찾으세요. X가 Y와 같아야 합니다.
 
-4. **Verify nvidia-container-toolkit is properly configured:**
-   Ensure nvidia-container-toolkit is installed and Docker daemon was restarted after installation.
+4. **nvidia-container-toolkit이 올바르게 구성되었는지 확인:**
+   nvidia-container-toolkit이 설치되어 있고 설치 후 Docker 데몬이 재시작되었는지 확인하세요.
 
-## Next Steps
+## 다음 단계
 
-- See `README.md` for full documentation
-- Check `ai_logs/README.md` for AI development notes
-- Explore the API at `http://localhost/docs` (FastAPI Swagger UI)
+- 전체 문서는 `README.ko.md` 참조
+- AI 개발 노트는 `ai_logs/README.md` 확인
+- `http://localhost/docs`에서 API 탐색 (FastAPI Swagger UI)
 
-## Development Mode
+## 개발 모드
 
-To run in development mode with hot reload:
+핫 리로드로 개발 모드에서 실행:
 
-### Backend
+### 백엔드
 ```bash
 cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-### Frontend
+### 프론트엔드
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Then access frontend at `http://localhost:5173`
+그런 다음 `http://localhost:5173`에서 프론트엔드에 액세스
