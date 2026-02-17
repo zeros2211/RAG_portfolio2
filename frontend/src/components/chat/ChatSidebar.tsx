@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card } from '@/components/ui/card'
 import { ChatSession, chatApi } from '@/services/api'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 interface ChatSidebarProps {
   sessions: ChatSession[]
@@ -18,6 +19,7 @@ export default function ChatSidebar({
   onSessionSelect,
   onSessionDeleted,
 }: ChatSidebarProps) {
+  const navigate = useNavigate()
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
 
   const formatDate = (dateString: string) => {
@@ -57,7 +59,10 @@ export default function ChatSidebar({
     <div className="w-64 border-r bg-muted/10 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b">
-        <h2 className="text-lg font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <h2
+          className="text-lg font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => navigate('/')}
+        >
           RAG System
         </h2>
       </div>
