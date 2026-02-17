@@ -1,4 +1,5 @@
 # RAG 채팅 시스템
+<img width="2560" height="1289" alt="스크린샷 2026-02-16 오후 8 48 12" src="https://github.com/user-attachments/assets/f9a771c8-1462-43a2-b14d-9fc14ddf56f3" />
 
 한국어 | [English](README.en.md)
 
