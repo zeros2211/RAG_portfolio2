@@ -100,12 +100,11 @@ async def upload_documents(
         # Generate document ID
         doc_id = str(uuid.uuid4())
 
-        # Save PDF
+        # Save PDF (stream to disk to avoid loading entire file into memory)
         pdf_path = settings.PDF_DIR / f"{doc_id}.pdf"
-        content = await file.read()
-
         with open(pdf_path, "wb") as f:
-            f.write(content)
+            while chunk := await file.read(1024 * 1024):
+                f.write(chunk)
 
         # Create document record
         document = Document(
