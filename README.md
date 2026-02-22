@@ -1,5 +1,6 @@
 # RAG 채팅 시스템
-<img width="2560" height="1289" alt="스크린샷 2026-02-16 오후 8 48 12" src="https://github.com/user-attachments/assets/f9a771c8-1462-43a2-b14d-9fc14ddf56f3" />
+<img width="2560" height="1289" alt="imgscreenshot" src="https://github.com/user-attachments/assets/ca1056ae-5c60-43e3-a22e-3364d4222991" />
+
 
 사용자가 PDF 문서를 업로드하고 지능형 대화 인터페이스를 통해 질문할 수 있는 **RAG(Retrieval-Augmented Generation)** 채팅 시스템입니다. 최신 웹 기술로 구축되었으며 원커맨드 배포를 위해 설계되었습니다.
 
